@@ -1,0 +1,312 @@
+Anime Fighter Game - Complete Function Explanations
+====================================================
+
+AnimeFighter Class
+==================
+
+Properties
+----------
+name - Stores the fighter's name (String)
+health - Current health points of the fighter (int)
+stamina - Current stamina points, used for skills (int, max 120)
+maxHealth - Maximum health for the fighter, used for healing limits (int)
+bandageUsed - Tracks if bandage has been used this round (boolean)
+potionUsed - Tracks if stamina potion has been used this round (boolean)
+isStunned - NEW! Tracks if fighter is stunned and will skip their turn (boolean)
+hasShield - NEW! Tracks if fighter has an active shield for damage reduction (boolean)
+burnDamage - NEW! Counter for burn effect duration (int, 0 = no burn, >0 = burning turns remaining)
+isSlowed - NEW! Tracks if fighter is slowed with reduced stamina gain (boolean)
+
+
+Constructor
+-----------
+AnimeFighter(String name, int health, int stamina)
+Creates a new fighter with the given name, health, and stamina values
+Sets maxHealth equal to initial health for tracking purposes
+Initializes both items (bandage and potion) as unused (false)
+NEW! Initializes all status effect flags to false/0 (isStunned, hasShield, burnDamage, isSlowed)
+Prints a message announcing the fighter entering the arena
+
+
+Combat Functions
+----------------
+
+void basicAttack(AnimeFighter target)
+Performs a basic attack on the target fighter
+Deals 15 damage to the target (or 7-8 damage if target has shield)
+NEW! Checks if target has SHIELD active - if yes, damage is reduced by 50% and shield is consumed
+Gains 20 stamina for the attacker (capped at 120)
+NEW! If attacker is SLOWED, stamina gain is reduced to only 10 instead of 20
+NEW! Slow effect is removed after being applied
+Checks if target is already defeated before attacking
+Prevents negative health values
+Announces defeat if target's health reaches 0
+
+void skill1(AnimeFighter target)
+First special skill, costs 30 stamina to use
+Each character has a unique Skill 1 with STATUS EFFECTS:
+
+Naruto: Rasengan (25 damage)
+  - NEW! 50% chance to STUN target (makes them skip their next turn)
+  
+Goku: Kamehameha (28 damage)
+  - NEW! Applies SLOW effect (reduces target's stamina gain from 20 to 10 on next basic attack)
+  
+Luffy: Gum-Gum Pistol (22 damage)
+  - NEW! Grants attacker a SHIELD (next incoming attack deals 50% less damage)
+  
+Asta: Black Slash (26 damage)
+  - NEW! Applies BURN effect (deals 5 damage at the start of target's next 2 turns)
+  
+Saitama: Consecutive Normal Punches (30 damage)
+  - NEW! 70% chance to STUN target with overwhelming power
+  
+Gojo: Cursed Technique Lapse Blue (24 damage)
+  - NEW! Applies FREEZE effect (guaranteed stun - target skips next turn)
+
+Checks if fighter has enough stamina before using
+Deducts stamina cost after use
+Uses if-else statements to check character name and apply appropriate skill
+
+
+void skill2(AnimeFighter target)
+Second special skill, costs 40 stamina to use
+Each character has a unique Skill 2:
+Naruto: Shadow Clone Jutsu (30 damage)
+Goku: Spirit Bomb (35 damage)
+Luffy: Gum-Gum Gatling (28 damage)
+Asta: Black Meteorite (32 damage)
+Saitama: Serious Punch (38 damage)
+Gojo: Hollow Purple (30 damage)
+Higher damage than Skill 1 but costs more stamina
+Same structure as skill1 with stamina checking and character-specific moves
+No status effects on Skill 2
+
+
+void skill3(AnimeFighter target)
+Third special skill, costs 50 stamina to use
+Most powerful regular skill for each character:
+Naruto: Sage Mode Attack (35 damage)
+Goku: Instant Transmission Strike (40 damage)
+Luffy: Gear Third (33 damage)
+Asta: Black Meteorite (37 damage)
+Saitama: Death Punch (45 damage)
+Gojo: Domain Expansion (35 damage)
+Highest stamina cost among regular skills
+Deals the most damage before ultimate
+No status effects on Skill 3
+
+
+void ultimate(AnimeFighter target)
+Ultimate ability, costs 100 stamina to use
+Most powerful attack for each character:
+Naruto: Six Paths Sage Mode (60 damage)
+Goku: Ultra Instinct (70 damage)
+Luffy: Gear Fifth (55 damage)
+Asta: Black Asta Devil Union (65 damage)
+Saitama: Serious Series: Serious Punch (80 damage)
+Gojo: Unlimited Void (58 damage)
+Requires full or near-full stamina bar to use
+Can potentially defeat opponent in one hit if they're weakened
+No status effects on Ultimate
+
+
+Item Functions
+--------------
+
+void useBandage()
+Restores 50 health points to the fighter
+Can only be used once per round
+Checks if bandage was already used this round
+Caps health at maxHealth (cannot overheal)
+Sets bandageUsed flag to true after use
+Displays current health after healing
+
+void useStaminaPotion()
+Restores 50 stamina points to the fighter
+Can only be used once per round
+Checks if potion was already used this round
+Caps stamina at 120 (maximum stamina)
+Sets potionUsed flag to true after use
+Displays current stamina after restoration
+
+void resetForNextRound()
+Resets fighter to full health and starting stamina (80)
+Resets item usage flags (bandageUsed and potionUsed back to false)
+Called between rounds in a best-of-3 match
+Ensures both fighters start fresh each round
+
+
+Utility Functions
+-----------------
+
+void showStats()
+Displays complete fighter information in a formatted box
+Shows: Name, Current Health/Max Health, Current Stamina/Max Stamina
+Shows item availability status (Available or Used)
+NEW! Shows all active status effects:
+  - "Status: BURNING" if burnDamage > 0
+  - "Status: STUNNED" if isStunned is true
+  - "Status: SHIELD ACTIVE" if hasShield is true
+  - "Status: SLOWED" if isSlowed is true
+Used at battle start and during each player's turn
+
+void applyStatusEffects()
+NEW! Processes ongoing status effects at the start of each turn
+Applies BURN damage if burnDamage counter is greater than 0
+  - Deals 5 damage to the fighter
+  - Decrements burn counter by 1
+  - Announces when burn effect ends (counter reaches 0)
+  - Prevents health from going below 0
+Called automatically at the beginning of each fighter's turn
+Critical for managing damage-over-time effects
+
+
+Main Game Class (tekken_game_type)
+===================================
+
+public static void main(String[] args)
+Entry point of the program
+Creates Scanner object for user input
+Displays character selection menu with 6 fighters
+Handles player 1 character selection with input validation
+Handles player 2 character selection with input validation
+Creates fighter objects using createFighter() method
+Displays battle start screen with initial stats
+
+NEW! Enhanced Battle Loop Features:
+------------------------------------
+For each turn:
+  1. NEW! Applies status effects (burn damage) at turn start using applyStatusEffects()
+  2. NEW! Checks if fighter is STUNNED - if yes, announces stun, skips entire turn, removes stun flag
+  3. Shows current player's stats and opponent summary
+  4. NEW! Dynamic action menu (hides options 6 and 7 if bandage/potion already used)
+  5. NEW! Input validation loop - prevents wasted turns on invalid choices
+     - If bandage already used and player chooses 6, asks to choose again
+     - If potion already used and player chooses 7, asks to choose again
+     - Uses try-catch to handle non-integer inputs without crashing
+  6. NEW! Skill descriptions displayed in menu showing:
+     - Skill name (e.g., "Rasengan" instead of just "Skill 1")
+     - Damage values (e.g., "25 dmg")
+     - Status effects (e.g., "50% Stun chance")
+  7. Processes player choice (attack, skills, items)
+  8. Adds 2-second delay for readability
+  9. Checks if opponent is defeated
+  10. Declares winner when one fighter's health reaches 0
+
+Closes Scanner to prevent resource leak
+
+
+public static AnimeFighter createFighter(int choice)
+Helper method that creates fighter objects based on player selection
+Takes an integer (1-6) representing player's character choice
+Uses if-else statements to match choice to character
+Returns a new AnimeFighter object with preset stats:
+Naruto (150 HP, 80 stamina)
+Goku (160 HP, 80 stamina)
+Luffy (145 HP, 80 stamina)
+Asta (155 HP, 80 stamina)
+Saitama (170 HP, 80 stamina)
+Gojo (150 HP, 80 stamina)
+Returns Naruto as default if invalid choice (safety fallback)
+
+
+Game Flow Summary
+=================
+1. Character Selection Phase: Both players choose from 6 anime fighters
+2. Battle Start: Shows initial stats with 3-second delay
+3. NEW! Turn Start: Apply status effects (burn damage), check for stun
+4. NEW! Dynamic Menu: Shows only available actions based on item usage
+5. NEW! Input Validation: Prevents wasted turns with invalid choices
+6. Action Processing: Each action is executed with appropriate animations/messages
+7. Turn Delay: 2-second pause between turns for readability
+8. Victory Check: After each action, checks if opponent health reached 0
+9. Game End: Announces winner and closes program
+
+
+NEW! Status Effect System Detailed Explanation
+===============================================
+
+STUN (isStunned)
+- Effect: Fighter completely skips their turn
+- Applied by: Naruto's Rasengan (50% chance), Saitama's Consecutive Normal Punches (70% chance), Gojo's Cursed Technique Lapse Blue (100% chance)
+- Duration: 1 turn (automatically removed after turn is skipped)
+- Strategy: High-risk high-reward, can give you a free turn to set up combos
+
+BURN (burnDamage counter)
+- Effect: Deals 5 damage at the start of the affected fighter's turn
+- Applied by: Asta's Black Slash
+- Duration: 2 turns (counter decrements each turn)
+- Strategy: Chip damage that adds up over time, good for finishing weakened opponents
+
+SHIELD (hasShield)
+- Effect: Reduces incoming damage by 50% on next attack received
+- Applied by: Luffy's Gum-Gum Pistol (self-buff)
+- Duration: Until next hit (consumed after absorbing one attack)
+- Strategy: Defensive option that allows aggressive play with less risk
+
+SLOW (isSlowed)
+- Effect: Reduces stamina gain from basic attacks (20 → 10)
+- Applied by: Goku's Kamehameha
+- Duration: 1 basic attack (removed after effect triggers)
+- Strategy: Slows opponent's resource generation, limiting their skill usage
+
+FREEZE (same as Stun but thematic)
+- Effect: Identical to Stun mechanically
+- Applied by: Gojo's Cursed Technique Lapse Blue (guaranteed)
+- Duration: 1 turn
+- Strategy: Guaranteed crowd control, most reliable disable in the game
+
+
+NEW! Turn Validation System
+============================
+Problem Solved: Previously, if a player selected an already-used item, their entire turn would be wasted
+Solution: validActionChosen boolean flag with while loop
+
+How it works:
+1. At start of turn, validActionChosen is set to false
+2. Loop continues until validActionChosen becomes true
+3. Player makes a choice
+4. System checks if choice is valid:
+   - If choosing bandage (6) but bandageUsed == true: Print error, loop continues
+   - If choosing potion (7) but potionUsed == true: Print error, loop continues
+   - If choosing basic attack or any skill: Always valid, set validActionChosen = true
+5. Try-catch block handles invalid input types (if player types letters instead of numbers)
+6. Only when validActionChosen is true does the loop exit and turn ends
+
+Result: No more wasted turns! Players can always take a meaningful action.
+
+
+Key Programming Concepts Used
+==============================
+Object-Oriented Programming: Class with properties, constructor, and methods
+Conditional Logic: if-else statements for character-specific skills and menu choices
+Loops: while loop for battle continuation, NEW! while loop for input validation
+User Input: Scanner class for player choices
+Thread Management: Thread.sleep() for turn delays
+Boolean Flags: Item usage tracking per round, NEW! status effect tracking
+Exception Handling: Try-catch blocks for thread interruptions, NEW! try-catch for input validation
+NEW! Random Number Generation: Math.random() for percentage-based status effect chances
+NEW! Counter System: burnDamage integer counter for multi-turn effects
+NEW! State Machine Logic: Status effect flags that modify behavior across multiple turns
+
+
+Implementation Notes for Presentation
+======================================
+1. Status effects add strategic depth without overwhelming complexity
+2. Each character has unique mechanics (stun chances, self-buffs, DoT effects)
+3. Dynamic menu improves user experience by hiding unavailable options
+4. Input validation prevents frustrating wasted turns
+5. All status effects have clear visual feedback in showStats()
+6. System is expandable - easy to add more status effects following same pattern
+7. Balance considerations: Skill 1 has effects but lower damage, higher skills trade utility for raw power
+
+
+Character Tier List (Based on Skill 1 Effects)
+===============================================
+S-Tier: Gojo (guaranteed freeze/stun)
+A-Tier: Saitama (70% stun + high damage), Asta (burn DoT)
+B-Tier: Naruto (50% stun), Goku (slow effect)
+C-Tier: Luffy (shield is defensive, less impactful)
+
+Note: This is just Skill 1 analysis - overall character balance includes all skills and base stats!

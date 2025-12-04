@@ -12,6 +12,10 @@ class AnimeFighter {
     int maxHealth;
     boolean bandageUsed;
     boolean potionUsed;
+    boolean isStunned;
+    boolean hasShield;
+    int burnDamage;
+    boolean isSlowed;
 
     // Constructor
     AnimeFighter(String name, int health, int stamina) {
@@ -21,6 +25,10 @@ class AnimeFighter {
         this.maxHealth = health;
         this.bandageUsed = false;
         this.potionUsed = false;
+        this.isStunned = false;
+        this.hasShield = false;
+        this.burnDamage = 0;
+        this.isSlowed = false;
         System.out.println(this.name + " enters the arena!");
     }
 
@@ -32,7 +40,21 @@ class AnimeFighter {
         }
 
         int damage = 15;
+        // Check if target has shield
+        if (target.hasShield) {
+            damage = damage / 2;
+            target.hasShield = false;
+            System.out.println(target.name + "'s SHIELD absorbed half the damage!");
+        }
+        
         int staminaGained = 20;
+        // Check if attacker is slowed
+        if (this.isSlowed) {
+            staminaGained = 10;
+            this.isSlowed = false;
+            System.out.println(this.name + " is SLOWED! Reduced stamina gain.");
+        }
+        
         System.out.println(this.name + " used Basic Attack on " + target.name);
         target.health -= damage;
         if (target.health < 0) {
@@ -105,6 +127,11 @@ class AnimeFighter {
                 if (target.health < 0) {
                     target.health = 0;
                 }
+                // Status Effect: 50% chance to STUN (skip next turn)
+                if (Math.random() < 0.5) {
+                    target.isStunned = true;
+                    System.out.println(target.name + " is STUNNED and will miss their next turn!");
+                }
                 System.out.println(target.name + "'s current health is at " + target.health + " points.");
                 System.out.println(this.name + " lost " + staminaCost + " stamina points.");
 
@@ -120,6 +147,9 @@ class AnimeFighter {
                 if (target.health < 0) {
                     target.health = 0;
                 }
+                // Status Effect: SLOW - reduces opponent's stamina gain
+                target.isSlowed = true;
+                System.out.println(target.name + " is SLOWED! Stamina gain reduced next turn.");
                 System.out.println(target.name + "'s current health is at " + target.health + " points.");
                 System.out.println(this.name + " lost " + staminaCost + " stamina points.");
 
@@ -135,6 +165,9 @@ class AnimeFighter {
                 if (target.health < 0) {
                     target.health = 0;
                 }
+                // Status Effect: SHIELD - absorbs next attack damage
+                this.hasShield = true;
+                System.out.println(this.name + " gains a SHIELD! Next attack damage reduced by 50%.");
                 System.out.println(target.name + "'s current health is at " + target.health + " points.");
                 System.out.println(this.name + " lost " + staminaCost + " stamina points.");
 
@@ -150,6 +183,9 @@ class AnimeFighter {
                 if (target.health < 0) {
                     target.health = 0;
                 }
+                // Status Effect: BURN - deals 5 damage for 2 turns
+                target.burnDamage = 2;
+                System.out.println(target.name + " is BURNING! Takes 5 damage per turn for 2 turns.");
                 System.out.println(target.name + "'s current health is at " + target.health + " points.");
                 System.out.println(this.name + " lost " + staminaCost + " stamina points.");
 
@@ -164,6 +200,11 @@ class AnimeFighter {
                 this.stamina -= staminaCost;
                 if (target.health < 0) {
                     target.health = 0;
+                }
+                // Status Effect: 70% chance to STUN
+                if (Math.random() < 0.7) {
+                    target.isStunned = true;
+                    System.out.println(target.name + " is STUNNED by the powerful punches!");
                 }
                 System.out.println(target.name + "'s current health is at " + target.health + " points.");
                 System.out.println(this.name + " lost " + staminaCost + " stamina points.");
@@ -180,6 +221,9 @@ class AnimeFighter {
                 if (target.health < 0) {
                     target.health = 0;
                 }
+                // Status Effect: FREEZE - guaranteed stun
+                target.isStunned = true;
+                System.out.println(target.name + " is FROZEN in place! Cannot move next turn.");
                 System.out.println(target.name + "'s current health is at " + target.health + " points.");
                 System.out.println(this.name + " lost " + staminaCost + " stamina points.");
 
@@ -506,7 +550,24 @@ class AnimeFighter {
         System.out.println("Stamina: " + this.stamina + "/120");
         System.out.println("Bandage: " + (this.bandageUsed ? "Used" : "Available"));
         System.out.println("Potion: " + (this.potionUsed ? "Used" : "Available"));
+        if (this.burnDamage > 0) System.out.println("Status: BURNING");
+        if (this.isStunned) System.out.println("Status: STUNNED");
+        if (this.hasShield) System.out.println("Status: SHIELD ACTIVE");
+        if (this.isSlowed) System.out.println("Status: SLOWED");
         System.out.println("-------------------------");
+    }
+    
+    void applyStatusEffects() {
+        // Apply burn damage
+        if (this.burnDamage > 0) {
+            this.health -= 5;
+            if (this.health < 0) this.health = 0;
+            System.out.println(this.name + " takes 5 BURN damage! (" + this.health + " HP remaining)");
+            this.burnDamage--;
+            if (this.burnDamage == 0) {
+                System.out.println(this.name + " is no longer burning.");
+            }
+        }
     }
 
 }
@@ -576,8 +637,31 @@ public class tekken_game_type {
         while (battleOngoing) {
             // Player 1 turn
             if (player1.health > 0 && player2.health > 0) {
-                boolean validActionChosen = false;
-                while (!validActionChosen) {
+                // Apply status effects at start of turn
+                player1.applyStatusEffects();
+                if (player1.health <= 0) {
+                    System.out.println("\n========================================");
+                    System.out.println("      " + player2.name + " WINS!");
+                    System.out.println("========================================");
+                    battleOngoing = false;
+                    break;
+                }
+                
+                // Check if player is stunned
+                if (player1.isStunned) {
+                    System.out.println("\n========================================");
+                    System.out.println("    PLAYER 1'S TURN (" + player1.name + ")");
+                    System.out.println("========================================");
+                    System.out.println(player1.name + " is STUNNED and cannot move this turn!");
+                    player1.isStunned = false;
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    boolean validActionChosen = false;
+                    while (!validActionChosen) {
                     System.out.println("\n========================================");
                     System.out.println("    PLAYER 1'S TURN (" + player1.name + ")");
                     System.out.println("========================================");
@@ -585,10 +669,40 @@ public class tekken_game_type {
                     System.out.println("\nOpponent: " + player2.name + " - HP: " + player2.health + "/" + player2.maxHealth + " | Stamina: " + player2.stamina + "/120");
                     System.out.println("\nChoose your action:");
                     System.out.println("1. Basic Attack (15 damage, +20 stamina)");
-                    System.out.println("2. Skill 1 (30 stamina required)");
-                    System.out.println("3. Skill 2 (40 stamina required)");
-                    System.out.println("4. Skill 3 (50 stamina required)");
-                    System.out.println("5. Ultimate (100 stamina required)");
+                    
+                    // Show skills with status effects based on character
+                    if (player1.name == "Naruto") {
+                        System.out.println("2. Rasengan (25 dmg, 50% Stun chance)");
+                        System.out.println("3. Shadow Clone Jutsu (30 dmg)");
+                        System.out.println("4. Sage Mode Attack (35 dmg)");
+                        System.out.println("5. Six Paths Sage Mode (60 dmg)");
+                    } else if (player1.name == "Goku") {
+                        System.out.println("2. Kamehameha (28 dmg, Slow)");
+                        System.out.println("3. Spirit Bomb (35 dmg)");
+                        System.out.println("4. Instant Transmission Strike (40 dmg)");
+                        System.out.println("5. Ultra Instinct (70 dmg)");
+                    } else if (player1.name == "Luffy") {
+                        System.out.println("2. Gum-Gum Pistol (22 dmg, Shield)");
+                        System.out.println("3. Gum-Gum Gatling (28 dmg)");
+                        System.out.println("4. Gear Third (33 dmg)");
+                        System.out.println("5. Gear Fifth (55 dmg)");
+                    } else if (player1.name == "Asta") {
+                        System.out.println("2. Black Slash (26 dmg, Burn)");
+                        System.out.println("3. Black Meteorite (32 dmg)");
+                        System.out.println("4. Black Divider (37 dmg)");
+                        System.out.println("5. Black Asta Devil Union (65 dmg)");
+                    } else if (player1.name == "Saitama") {
+                        System.out.println("2. Consecutive Normal Punches (30 dmg, 70% Stun)");
+                        System.out.println("3. Serious Punch (38 dmg)");
+                        System.out.println("4. Death Punch (45 dmg)");
+                        System.out.println("5. Serious Series (80 dmg)");
+                    } else if (player1.name == "Gojo") {
+                        System.out.println("2. Lapse Blue (24 dmg, Freeze)");
+                        System.out.println("3. Reversal Red (30 dmg)");
+                        System.out.println("4. Hollow Purple (35 dmg)");
+                        System.out.println("5. Unlimited Void (58 dmg)");
+                    }
+                    
                     if (!player1.bandageUsed) {
                         System.out.println("6. Use Bandage (+50 HP, once per round)");
                     }
@@ -635,6 +749,7 @@ public class tekken_game_type {
                     } else if (action == 7) {
                         player1.useStaminaPotion();
                     }
+                    }
                 }
                 
                 try {
@@ -653,8 +768,31 @@ public class tekken_game_type {
             
             // Player 2 turn
             if (player1.health > 0 && player2.health > 0) {
-                boolean validActionChosen = false;
-                while (!validActionChosen) {
+                // Apply status effects at start of turn
+                player2.applyStatusEffects();
+                if (player2.health <= 0) {
+                    System.out.println("\n========================================");
+                    System.out.println("      " + player1.name + " WINS!");
+                    System.out.println("========================================");
+                    battleOngoing = false;
+                    break;
+                }
+                
+                // Check if player is stunned
+                if (player2.isStunned) {
+                    System.out.println("\n========================================");
+                    System.out.println("    PLAYER 2'S TURN (" + player2.name + ")");
+                    System.out.println("========================================");
+                    System.out.println(player2.name + " is STUNNED and cannot move this turn!");
+                    player2.isStunned = false;
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    boolean validActionChosen = false;
+                    while (!validActionChosen) {
                     System.out.println("\n========================================");
                     System.out.println("    PLAYER 2'S TURN (" + player2.name + ")");
                     System.out.println("========================================");
@@ -662,10 +800,40 @@ public class tekken_game_type {
                     System.out.println("\nOpponent: " + player1.name + " - HP: " + player1.health + "/" + player1.maxHealth + " | Stamina: " + player1.stamina + "/120");
                     System.out.println("\nChoose your action:");
                     System.out.println("1. Basic Attack (15 damage, +20 stamina)");
-                    System.out.println("2. Skill 1 (30 stamina required)");
-                    System.out.println("3. Skill 2 (40 stamina required)");
-                    System.out.println("4. Skill 3 (50 stamina required)");
-                    System.out.println("5. Ultimate (100 stamina required)");
+                    
+                    // Show skills with status effects based on character
+                    if (player2.name == "Naruto") {
+                        System.out.println("2. Rasengan (25 dmg, 50% Stun chance)");
+                        System.out.println("3. Shadow Clone Jutsu (30 dmg)");
+                        System.out.println("4. Sage Mode Attack (35 dmg)");
+                        System.out.println("5. Six Paths Sage Mode (60 dmg)");
+                    } else if (player2.name == "Goku") {
+                        System.out.println("2. Kamehameha (28 dmg, Slow)");
+                        System.out.println("3. Spirit Bomb (35 dmg)");
+                        System.out.println("4. Instant Transmission Strike (40 dmg)");
+                        System.out.println("5. Ultra Instinct (70 dmg)");
+                    } else if (player2.name == "Luffy") {
+                        System.out.println("2. Gum-Gum Pistol (22 dmg, Shield)");
+                        System.out.println("3. Gum-Gum Gatling (28 dmg)");
+                        System.out.println("4. Gear Third (33 dmg)");
+                        System.out.println("5. Gear Fifth (55 dmg)");
+                    } else if (player2.name == "Asta") {
+                        System.out.println("2. Black Slash (26 dmg, Burn)");
+                        System.out.println("3. Black Meteorite (32 dmg)");
+                        System.out.println("4. Black Divider (37 dmg)");
+                        System.out.println("5. Black Asta Devil Union (65 dmg)");
+                    } else if (player2.name == "Saitama") {
+                        System.out.println("2. Consecutive Normal Punches (30 dmg, 70% Stun)");
+                        System.out.println("3. Serious Punch (38 dmg)");
+                        System.out.println("4. Death Punch (45 dmg)");
+                        System.out.println("5. Serious Series (80 dmg)");
+                    } else if (player2.name == "Gojo") {
+                        System.out.println("2. Lapse Blue (24 dmg, Freeze)");
+                        System.out.println("3. Reversal Red (30 dmg)");
+                        System.out.println("4. Hollow Purple (35 dmg)");
+                        System.out.println("5. Unlimited Void (58 dmg)");
+                    }
+                    
                     if (!player2.bandageUsed) {
                         System.out.println("6. Use Bandage (+50 HP, once per round)");
                     }
@@ -711,6 +879,7 @@ public class tekken_game_type {
                         player2.useBandage();
                     } else if (action == 7) {
                         player2.useStaminaPotion();
+                    }
                     }
                 }
                 
