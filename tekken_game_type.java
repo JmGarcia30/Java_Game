@@ -576,39 +576,65 @@ public class tekken_game_type {
         while (battleOngoing) {
             // Player 1 turn
             if (player1.health > 0 && player2.health > 0) {
-                System.out.println("\n========================================");
-                System.out.println("    PLAYER 1'S TURN (" + player1.name + ")");
-                System.out.println("========================================");
-                player1.showStats();
-                System.out.println("\nOpponent: " + player2.name + " - HP: " + player2.health + "/" + player2.maxHealth + " | Stamina: " + player2.stamina + "/120");
-                System.out.println("\nChoose your action:");
-                System.out.println("1. Basic Attack (15 damage, +20 stamina)");
-                System.out.println("2. Skill 1 (30 stamina required)");
-                System.out.println("3. Skill 2 (40 stamina required)");
-                System.out.println("4. Skill 3 (50 stamina required)");
-                System.out.println("5. Ultimate (100 stamina required)");
-                System.out.println("6. Use Bandage (+50 HP, once per round)" + (player1.bandageUsed ? " [USED]" : ""));
-                System.out.println("7. Use Stamina Potion (+50 stamina, once per round)" + (player1.potionUsed ? " [USED]" : ""));
-                System.out.print("Enter choice: ");
-                int action = scanner.nextInt();
-                
-                if (action == 1) {
-                    player1.basicAttack(player2);
-                } else if (action == 2) {
-                    player1.skill1(player2);
-                } else if (action == 3) {
-                    player1.skill2(player2);
-                } else if (action == 4) {
-                    player1.skill3(player2);
-                } else if (action == 5) {
-                    player1.ultimate(player2);
-                } else if (action == 6) {
-                    player1.useBandage();
-                } else if (action == 7) {
-                    player1.useStaminaPotion();
-                } else {
-                    System.out.println("Invalid action. Using Basic Attack instead.");
-                    player1.basicAttack(player2);
+                boolean validActionChosen = false;
+                while (!validActionChosen) {
+                    System.out.println("\n========================================");
+                    System.out.println("    PLAYER 1'S TURN (" + player1.name + ")");
+                    System.out.println("========================================");
+                    player1.showStats();
+                    System.out.println("\nOpponent: " + player2.name + " - HP: " + player2.health + "/" + player2.maxHealth + " | Stamina: " + player2.stamina + "/120");
+                    System.out.println("\nChoose your action:");
+                    System.out.println("1. Basic Attack (15 damage, +20 stamina)");
+                    System.out.println("2. Skill 1 (30 stamina required)");
+                    System.out.println("3. Skill 2 (40 stamina required)");
+                    System.out.println("4. Skill 3 (50 stamina required)");
+                    System.out.println("5. Ultimate (100 stamina required)");
+                    if (!player1.bandageUsed) {
+                        System.out.println("6. Use Bandage (+50 HP, once per round)");
+                    }
+                    if (!player1.potionUsed) {
+                        System.out.println("7. Use Stamina Potion (+50 stamina, once per round)");
+                    }
+                    System.out.print("Enter choice: ");
+                    
+                    int action = 0;
+                    try {
+                        action = scanner.nextInt();
+                    } catch (Exception e) {
+                        System.out.println("Invalid input! Please try again.");
+                        scanner.nextLine(); // Clear buffer
+                        continue;
+                    }
+                    
+                    // Validate action - only allow valid available actions
+                    if (action < 1 || action > 5) {
+                        if (action == 6 && !player1.bandageUsed) {
+                            // 6 is valid if bandage not used
+                        } else if (action == 7 && !player1.potionUsed) {
+                            // 7 is valid if potion not used
+                        } else {
+                            System.out.println("Invalid action. Please choose an available option.");
+                            continue;
+                        }
+                    }
+                    
+                    validActionChosen = true;
+                    
+                    if (action == 1) {
+                        player1.basicAttack(player2);
+                    } else if (action == 2) {
+                        player1.skill1(player2);
+                    } else if (action == 3) {
+                        player1.skill2(player2);
+                    } else if (action == 4) {
+                        player1.skill3(player2);
+                    } else if (action == 5) {
+                        player1.ultimate(player2);
+                    } else if (action == 6) {
+                        player1.useBandage();
+                    } else if (action == 7) {
+                        player1.useStaminaPotion();
+                    }
                 }
                 
                 try {
@@ -627,39 +653,65 @@ public class tekken_game_type {
             
             // Player 2 turn
             if (player1.health > 0 && player2.health > 0) {
-                System.out.println("\n========================================");
-                System.out.println("    PLAYER 2'S TURN (" + player2.name + ")");
-                System.out.println("========================================");
-                player2.showStats();
-                System.out.println("\nOpponent: " + player1.name + " - HP: " + player1.health + "/" + player1.maxHealth + " | Stamina: " + player1.stamina + "/120");
-                System.out.println("\nChoose your action:");
-                System.out.println("1. Basic Attack (15 damage, +20 stamina)");
-                System.out.println("2. Skill 1 (30 stamina required)");
-                System.out.println("3. Skill 2 (40 stamina required)");
-                System.out.println("4. Skill 3 (50 stamina required)");
-                System.out.println("5. Ultimate (100 stamina required)");
-                System.out.println("6. Use Bandage (+50 HP, once per round)" + (player2.bandageUsed ? " [USED]" : ""));
-                System.out.println("7. Use Stamina Potion (+50 stamina, once per round)" + (player2.potionUsed ? " [USED]" : ""));
-                System.out.print("Enter choice: ");
-                int action = scanner.nextInt();
-                
-                if (action == 1) {
-                    player2.basicAttack(player1);
-                } else if (action == 2) {
-                    player2.skill1(player1);
-                } else if (action == 3) {
-                    player2.skill2(player1);
-                } else if (action == 4) {
-                    player2.skill3(player1);
-                } else if (action == 5) {
-                    player2.ultimate(player1);
-                } else if (action == 6) {
-                    player2.useBandage();
-                } else if (action == 7) {
-                    player2.useStaminaPotion();
-                } else {
-                    System.out.println("Invalid action. Using Basic Attack instead.");
-                    player2.basicAttack(player1);
+                boolean validActionChosen = false;
+                while (!validActionChosen) {
+                    System.out.println("\n========================================");
+                    System.out.println("    PLAYER 2'S TURN (" + player2.name + ")");
+                    System.out.println("========================================");
+                    player2.showStats();
+                    System.out.println("\nOpponent: " + player1.name + " - HP: " + player1.health + "/" + player1.maxHealth + " | Stamina: " + player1.stamina + "/120");
+                    System.out.println("\nChoose your action:");
+                    System.out.println("1. Basic Attack (15 damage, +20 stamina)");
+                    System.out.println("2. Skill 1 (30 stamina required)");
+                    System.out.println("3. Skill 2 (40 stamina required)");
+                    System.out.println("4. Skill 3 (50 stamina required)");
+                    System.out.println("5. Ultimate (100 stamina required)");
+                    if (!player2.bandageUsed) {
+                        System.out.println("6. Use Bandage (+50 HP, once per round)");
+                    }
+                    if (!player2.potionUsed) {
+                        System.out.println("7. Use Stamina Potion (+50 stamina, once per round)");
+                    }
+                    System.out.print("Enter choice: ");
+                    
+                    int action = 0;
+                    try {
+                        action = scanner.nextInt();
+                    } catch (Exception e) {
+                        System.out.println("Invalid input! Please try again.");
+                        scanner.nextLine(); // Clear buffer
+                        continue;
+                    }
+                    
+                    // Validate action - only allow valid available actions
+                    if (action < 1 || action > 5) {
+                        if (action == 6 && !player2.bandageUsed) {
+                            // 6 is valid if bandage not used
+                        } else if (action == 7 && !player2.potionUsed) {
+                            // 7 is valid if potion not used
+                        } else {
+                            System.out.println("Invalid action. Please choose an available option.");
+                            continue;
+                        }
+                    }
+                    
+                    validActionChosen = true;
+                    
+                    if (action == 1) {
+                        player2.basicAttack(player1);
+                    } else if (action == 2) {
+                        player2.skill1(player1);
+                    } else if (action == 3) {
+                        player2.skill2(player1);
+                    } else if (action == 4) {
+                        player2.skill3(player1);
+                    } else if (action == 5) {
+                        player2.ultimate(player1);
+                    } else if (action == 6) {
+                        player2.useBandage();
+                    } else if (action == 7) {
+                        player2.useStaminaPotion();
+                    }
                 }
                 
                 try {
